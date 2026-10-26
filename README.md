@@ -91,7 +91,7 @@ node src/cli.js launch
 
 | 模块 | 能力 |
 |---|---|
-| **信任链** | `AppxSignature.p7x` Authenticode 验签 → 签名内 `AXBM` = `AppxBlockMap.xml` 的 SHA-256 → 用 BlockMap 的 64 KB 块逐文件校验（3,670 文件 / 2.2 GB） |
+| **信任链** | `AppxSignature.p7x` Authenticode 验签 → 签名内 `AXBM` = `AppxBlockMap.xml` 的 SHA-256 → 用 BlockMap 的 64 KB 块逐文件校验（3,661 文件 / 2.2 GB） |
 | **私有副本** | 复制到 `%LOCALAPPDATA%\CodexPP\app`；receipt、快捷方式、`restore`；原包不动 |
 | **ASAR 补丁** | 注入 `codexpp-bootstrap.js`，改 `package.json` 的 `main`；重建 ASAR；把 header SHA-256 写回 `ChatGPT.exe` 的 `INTEGRITY/ELECTRONASAR` |
 | **扩展宿主** | `%APPDATA%\CodexPP\extensions\*`，注入所有 `app://` 窗口（含已存在和新建 `webContents`） |
