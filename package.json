@@ -1,0 +1,24 @@
+{
+  "name": "my-codex-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows Codex enhancement: verified private copy, renderer extensions, Settings, tray, Appshot, Focus Mode and local signing.",
+  "type": "commonjs",
+  "main": "src/cli.js",
+  "bin": {
+    "my-codex-desktop": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node test/extension-id.test.js",
+    "verify": "node src/cli.js verify",
+    "install-app": "node src/cli.js install",
+    "status": "node src/cli.js status",
+    "build:exe": "node build-exe.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "postject": "^1.0.0-alpha.6"
+  }
+}

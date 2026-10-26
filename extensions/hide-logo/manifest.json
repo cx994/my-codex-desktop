@@ -1,0 +1,8 @@
+{
+  "id": "com.codexpp.hide-logo",
+  "name": "Hide Codex Logo",
+  "version": "0.1.0",
+  "description": "Hides the Codex wordmark in the top-left sidebar header.",
+  "scope": "renderer",
+  "main": "index.js"
+}

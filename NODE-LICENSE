@@ -1,0 +1,8 @@
+Node.js is licensed under the MIT license.
+
+Copyright Node.js contributors. All rights reserved.
+
+The full license text is available at:
+https://github.com/nodejs/node/blob/main/LICENSE
+
+The single-file my-codex-desktop.exe embeds the Node.js runtime.
