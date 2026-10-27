@@ -111,6 +111,37 @@ node src/cli.js launch
 - CUA `get_app_state` 的可访问性文本接入；Appshot 走 Electron 捕获。
 - 打包 exe 的自更新（exe 从 Releases 下载新版）。
 
+## 设计原则
+
+这个项目的核心不是“改 Codex”，而是“在不破坏原包的前提下，给私有副本加一层可撤销的运行时”。六个原则决定了实现：
+
+1. **原包不可变**：MSIX 在 `WindowsApps` 下只读且带商店签名，原地改会破坏包完整性并阻塞商店更新。因此只读原包，复制到 `%LOCALAPPDATA%\CodexPP\app`，所有修改只发生在副本；`restore` 删除副本即可回到原状。
+2. **信任先于执行**：先验证 `AppxSignature.p7x` 的 Authenticode、publisher pin、`AXBM` 与 `AppxBlockMap.xml` 的 SHA-256 绑定，再用 64 KB 块逐文件校验；通过后才复制和打补丁。BlockMap 本身不是信任根，必须先被包签名认证。
+3. **最小补丁面**：只改两个位置——在 ASAR 根新增 `codexpp-bootstrap.js` 并改 `package.json` 的 `main`；把新 ASAR header SHA-256 写回 `ChatGPT.exe` 的 `INTEGRITY/ELECTRONASAR`。原 main、`unpacked` 条目、每文件 integrity 都保留；不修改原生代码段，只等长覆盖资源。
+4. **可逆、可诊断**：安装写 receipt；`status` 重新计算 ASAR/资源哈希、检查签名和商店版本漂移；`restore` 删除副本；日志分开记录 bootstrap、启动 stderr、托盘和发现报告。
+5. **版本适配失败不阻断**：Settings AST 和 startup adapter 都按代码形状发现；Settings 失配时回退浮动面板，startup 只默认应用实测安全的 `shared,initial` 子集；完整集合需显式 `--startup-chunks`，避免为了性能牺牲可用性。
+6. **不分发 OpenAI 代码、不注入品牌**：不复制官方二进制；只操作本机已安装的包。默认不注入右下角徽标，内置扩展只有 Settings 和 Hide Logo。
+
+### 架构分层
+
+| 层 | 文件 | 职责 |
+|---|---|---|
+| CLI / 命令 | `src/cli.js`, `src/install.js` | install/repatch/launch/status/restore/ext/tray/appshot/sign/update |
+| 信任链 | `src/trust.js` | 定位 MSIX、p7x 验签、AXBM/BlockMap、逐文件校验 |
+| 补丁器 | `src/asar.js`, `src/pe.js`, `src/adapter-runner.js` | 重建 ASAR、写 PE 资源、运行 Settings/startup AST |
+| 运行时 | `runtime/bootstrap.js` | 注入扩展、Settings 命令、Focus、Appshot、浏览器桥 |
+| 扩展 | `extensions/settings`, `extensions/hide-logo` | 浮动面板、隐藏字标 |
+| 托盘 | `tray.ps1` | 状态/启动/Settings/Focus/Appshot/更新/还原 |
+| 分发 | `build-exe.js` | Node SEA 单文件 exe，首次运行解压运行时 |
+
+### 关键不变量
+
+- ASAR header SHA-256 必须等于 `ELECTRONASAR` 资源值；否则应用拒绝启动。
+- 原 main 文件不被改写；`unpacked` 标志和每文件 integrity 保留。
+- 原包从不被写入；副本没有 MSIX package identity，因此通知/开机任务/商店更新仍属于原包。
+- 补丁后的 exe 只有本地自签名证书，不是 OpenAI 签名。
+- 扩展是可信本地代码，不是沙箱。
+
 ## 工作原理
 
 ```mermaid
